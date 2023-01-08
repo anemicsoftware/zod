@@ -1232,6 +1232,120 @@ z.string().array().length(5); // must contain 5 items exactly
 
 Unlike `.nonempty()` these methods do not change the inferred type.
 
+### `.uniq`
+
+If you want to ensure the array doesn't contains duplicate elements
+
+```ts
+const noDuplicates = z.string().array().uniq();
+
+noDuplicates.parse([]); // passes
+noDuplicates.parse(["apple", "orange", "lemon"]); // passes
+noDuplicates.parse(["apple", "orange", "apple", "lemon"]); // throws: "Array must not contain duplicated elements"
+
+// uniq can be canceled by passing false argument:
+
+noDuplicates.uniq(false).parse(["apple", "orange", "apple", "lemon"]); // passes
+```
+
+### `.uniqDeep`
+
+Same as uniq but deeply check objects equality
+
+```ts
+const noDuplicatesDeep = z.string().array().uniqDeep();
+const noDuplicates = z.string().array().uniq();
+
+noDuplicatesDeep.parse([]); // passes
+noDuplicatesDeep.parse([
+  { fruit: "apple" },
+  { fruit: "orange" },
+  { fruit: "lemon" },
+]); // passes
+noDuplicatesDeep.parse([
+  { fruit: "apple" },
+  { fruit: "orange" },
+  { fruit: "apple" },
+  { fruit: "lemon" },
+]); // throws: "Array must not contain duplicated elements based on deep object check"
+noDuplicates.parse([
+  { fruit: "apple" },
+  { fruit: "orange" },
+  { fruit: "apple" },
+  { fruit: "lemon" },
+]); // passes
+
+// uniq can be canceled by passing false argument:
+
+noDuplicatesDeep.uniq(false).parse(["apple", "orange", "apple", "lemon"]); // passes
+```
+
+### `.uniqBy`
+
+Uniq check using a map function before testing unicity
+
+```ts
+const noDuplicates = z
+  .string()
+  .array()
+  .uniqBy((elem) => elem.type);
+
+noDuplicates.parse([]); // passes
+noDuplicates.parse([
+  { type: "apple", color: "green" },
+  { type: "orange", color: "orange" },
+  { type: "lemon", color: "yellow" },
+]); // passes
+noDuplicates.parse([
+  { type: "apple", color: "green" },
+  { type: "orange", color: "orange" },
+  { type: "lemon", color: "yellow" },
+  { type: "apple", color: "red" },
+]); // throws: "Array must not contain duplicated elements based on custom map"
+
+// uniqBy can be canceled by passing no argument:
+
+noDuplicates.uniqBy().parse([
+  { type: "apple", color: "green" },
+  { type: "orange", color: "orange" },
+  { type: "lemon", color: "yellow" },
+  { type: "apple", color: "red" },
+]); // passes
+```
+
+### `.uniqWith`
+
+Uniq check using a custom match function
+
+```ts
+const noDuplicates = z
+  .string()
+  .array()
+  .uniqWith((a, b) => a.type === b.type);
+
+noDuplicates.parse([]); // passes
+noDuplicates.parse([
+  { type: "apple", color: "green" },
+  { type: "orange", color: "orange" },
+  { type: "lemon", color: "yellow" },
+]); // passes
+noDuplicates.parse([
+  { type: "apple", color: "green" },
+  { type: "orange", color: "orange" },
+  { type: "lemon", color: "yellow" },
+  { type: "apple", color: "red" },
+]); // throws: "Array must not contain duplicated elements based on custom check"
+
+// uniqWith can be canceled by passing no argument:
+
+noDuplicates.uniqWith().parse([
+  { type: "apple", color: "green" },
+  { type: "orange", color: "orange" },
+  { type: "lemon", color: "yellow" },
+  { type: "apple", color: "red" },
+]); // passes
+```
+
 ## Tuples
 
 Unlike arrays, tuples have a fixed number of elements and each element can have a different type.

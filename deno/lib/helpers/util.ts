@@ -70,6 +70,28 @@ export namespace util {
   export type flatten<T> = identity<{ [k in keyof T]: T[k] }>;
   export type noUndefined<T> = T extends undefined ? never : T;
 
+  export function isEqual(a: any, b: any): boolean {
+    if (a === b) {
+      return true;
+    }
+
+    if (typeof a === "object" && typeof b === "object") {
+      const aKeys = objectKeys(a);
+      const bKeys = objectKeys(b);
+
+      if (aKeys.length !== bKeys.length) {
+        return false;
+      }
+
+      return aKeys.every(
+        (key) =>
+          isEqual(a[key], b[key]) &&
+          Object.prototype.hasOwnProperty.call(b, key)
+      );
+    }
+
+    return false;
+  }
   export const isInteger: NumberConstructor["isInteger"] =
     typeof Number.isInteger === "function"
       ? (val) => Number.isInteger(val) // eslint-disable-line ban/ban
